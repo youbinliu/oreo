@@ -11,10 +11,10 @@
  * ============================================================
  
  */
-
+#include <pthread.h>
 #include "oreo_lock.h"
 
-OreoLock::OreoLock():locked(false){
+OreoLock::OreoLock():_locked(false){
 	pthread_mutex_init(&_mutex, NULL);
 }
 
@@ -23,19 +23,45 @@ OreoLock::~OreoLock(){
 }
 
 OreoLock::lock(){
-	locked = true;
+	_locked = true;
 	pthread_mutex_lock(&_mutex);
 }
 
 OreoLock::unlock(){
-	locked = false;
+	_locked = false;
 	pthread_mutex_unlock(&_mutex);
 }
 
-OreoMutexLock::OreoMutexLock(){
+OreoLock::islocked(){
+	return _locked;
+}
+
+OreoMutexLock::OreoMutexLock(OreoLock *lock):_lock(lock){
 	_lock.lock();
 }
 
 OreoMutexLock::~OreoMutexLock(){
 	_lock.unlock();
 }
+
+OreoCondLock::OreoCondLock(OreoLock *lock):_lock(lock){
+	pthread_cond_init(&_cond);
+}
+
+OreoCondLock::~OreoCondLock(){
+	pthread_cond_destroy(&_cond);
+}
+
+OreoCondLock::wait(){
+	OreoMutexLock(_lock);
+	pthread_cond_wait(&_cond, _lock->mutex());	
+}
+
+OreoCondLock::notify(){
+	pthread_cond_signal(&_cond);
+}
+
+OreoCondLock::notifyAll(){
+	pthread_cond_broadcast(&_cond);
+}
+

@@ -12,38 +12,52 @@
  
  */
 
- #ifndef __OREO_LOCK_H_
- #define __OREO_LOCK_H_
+#ifndef __OREO_LOCK_H_
+#define __OREO_LOCK_H_
 
- namespace oreo{
+#include <pthread.h>
 
- 	class OreoLock{
- 		public:
- 			OreoLock();
- 			~OreoLock(){
- 				pthread_mutex_destroy(&_mutex);
- 			}
- 			void lock();
- 			void unlock();
- 		private:
- 			bool locked;
- 			pthread_mutex_t _mutex;
- 	};
+namespace oreo{
 
- 	class OreoMutexLock{
- 		public:
- 			OreoMutexLock();
- 			~OreoMutexLock();
+	class OreoLock{
+		public:
+			OreoLock();
+			~OreoLock();
+			void lock();
+			void unlock();
+			bool islocked();
+			pthread_mutex_t * mutex(){
+				return &_mutex;
+			}
+		private:
+			bool _locked;
+			pthread_mutex_t _mutex;
+	};
 
- 		private:
- 			OreoLock _lock;
- 	};
+	class OreoMutexLock{
+		public:
+			OreoMutexLock(OreoLock *lock);
+			~OreoMutexLock();
 
- 	class OreoCondtionLock{
+		private:
+			OreoLock *_lock;
+	};
 
- 	};
- }
+	class OreoCondLock{
+		public:
+			OreoCondLock(OreoLock *lock);
+			~OreoCondLock();
+			void wait();
+			void notify();
+			void notifyAll();
 
- #endif
+		private:
+			OreoLock *_lock; 
+			pthread_cond_t _cond;
+
+	};
+}
+
+#endif
 
 
