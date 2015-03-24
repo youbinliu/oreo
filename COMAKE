@@ -1,0 +1,53 @@
+#edit-mode: -*- python -*-
+#coding:gbk
+
+#工作路径.
+WORKROOT('../../../../')
+
+#使用硬链接copy.
+CopyUsingHardLink(True)
+
+#C预处理器参数.
+CPPFLAGS('-D_GNU_SOURCE -D__STDC_LIMIT_MACROS -DVERSION=\\\"1.0.0.0\\\"')
+
+#C编译参数.
+CFLAGS('-g -pipe -W -Wall -Werror')
+
+#C++编译参数.
+CXXFLAGS('-g -pipe -W -Wall -Werror')
+
+#IDL编译参数
+#IDLFLAGS('--compack')
+
+#UBRPC编译参数
+#UBRPCFLAGS('--compack')
+
+#头文件路径.
+INCPATHS('. ./include ./output ./output/include')
+
+#使用库
+#LIBS('./libconnection.a')
+
+#链接参数.
+LDFLAGS('-lpthread -lcrypto -lrt -lssl -lldap -lidn')
+
+#依赖模块
+#CONFIGS('lib2/ullib@ullib_3-1-75-0_PD_BL')
+
+user_sources=GLOB('*.cpp')
+user_headers=GLOB('*.h')
+
+#可执行文件
+Application('oreo',Sources(user_sources))
+
+#静态库
+#StaticLibrary('connection',Sources(user_sources),HeaderFiles(user_headers))
+
+#共享库
+#SharedLibrary('connection',Sources(user_sources),HeaderFiles(user_headers))
+
+#子目录
+TARGET('.copy',
+    ShellCommands('mkdir -p output',
+                  'cp  oreo output/'),
+    CleanCommands('rm -rf output')) 
