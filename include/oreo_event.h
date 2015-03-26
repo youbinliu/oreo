@@ -21,7 +21,7 @@
 #include <errno.h>
  
 namespace oreo{
-	typedef void (*callback)(void *);
+	typedef void (*callback)(void *,void *);
 	enum OreoEventType {  
 		MAIN_EVENT,
 		NET_EVENT,
@@ -36,7 +36,6 @@ namespace oreo{
 			void careRead();
 			int careEventType();
 			bool isReadEvent();
-			void fireCallback();
 
 			int getEventType(){
 				return _event_type;
@@ -56,6 +55,10 @@ namespace oreo{
 
 			int getCareEventType(){
 				return _care_event_type;
+			}
+
+			callback getCallback(){
+				return _cb;
 			}
 
 		private:

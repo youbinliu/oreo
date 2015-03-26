@@ -25,7 +25,10 @@
 #include <sys/epoll.h>
 #include <fcntl.h>
 #include <errno.h>
-
+#include <signal.h>
+#include <sys/prctl.h>
+#include <sys/syscall.h>
+ 
 #include "oreo_lock.h"
 #include "oreo_queue.h"
 #include "oreo_event.h"
@@ -37,12 +40,18 @@ namespace oreo{
 		SERVER_RUNNING,
 		SERVER_STOP
 	};
+
 	class OreoTcpServer{
 		public:
 			OreoTcpServer(int port):_port(port){}
 			int init();
 			int run();
 			int join();
+
+			void registerReadCallback(callback cb){
+				_cb = cb;
+			}
+
 			int getServerStatus(){
 				return _server_status;
 			}
@@ -55,11 +64,16 @@ namespace oreo{
 				return _server_epoll;
 			}
 
+			OreoCondLock * getCondLock(){
+				return _cond;
+			}
+
 
 		private:
 			void setSocketNonblock(int socket_fd);
 			void createSocket(int port,int backlog, int &socket_fd);
 			void connectionCallback(void *data);
+			
 
 		public:
 			int _loop_timeintval;
@@ -71,6 +85,9 @@ namespace oreo{
 			int _net_work_threads_size;
 			int _max_event_size;
 			std::vector<pthread_t> _threads;
+			OreoLock *_lock;
+			OreoCondLock *_cond;
+			callback _cb;
 		private:
 			
 			OreoEpoll *_server_epoll;

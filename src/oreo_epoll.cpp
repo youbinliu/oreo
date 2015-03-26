@@ -89,6 +89,8 @@ int OreoEpoll::loop(int timeintval, std::vector<OreoEvent*> &ready_events){
 				perror("inet_ntop failed");
 			}
 
+			//printf("accept:%s, socket:%d\n", client_ip_str, conn_sock);
+
 			int flags = fcntl(conn_sock, F_GETFL, 0);
 
 			fcntl(conn_sock, F_SETFL, flags| O_NONBLOCK);
@@ -102,7 +104,7 @@ int OreoEpoll::loop(int timeintval, std::vector<OreoEvent*> &ready_events){
 
 			event->setCurrentEvent(_epoll_events[i].events);
 			ready_events.push_back(event);
-			//deleteEvent(_epoll_events[i].data.fd);
+			deleteEvent(event->getEventFd());
 
 		}else if (event->getEventType() == CPU_EVENT){
 

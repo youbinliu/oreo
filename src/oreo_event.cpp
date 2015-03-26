@@ -26,7 +26,5 @@ void OreoEvent::careRead(){
 bool OreoEvent::isReadEvent(){
 	return _current_event_type & EPOLLIN;
 }
-void OreoEvent::fireCallback(){
-	_cb(_event_data);
-}
+
 }

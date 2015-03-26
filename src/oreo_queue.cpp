@@ -23,6 +23,9 @@ void OreoEventQueue::put(OreoEvent * event){
 
 OreoEvent* OreoEventQueue::pop(){
 	OreoMutexLock mutexlock(&_lock);
+	if(_queue.size() == 0){
+		return NULL;
+	}
 	OreoEvent *event = _queue.front();
 	_queue.pop_front();
 	return event;

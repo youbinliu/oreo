@@ -23,13 +23,14 @@ namespace oreo{
 
 	class OreoEventQueue{
 		public:
-			OreoEventQueue(uint32_t size):_queue(size){}
+			OreoEventQueue(uint32_t size):_put_count(0),_queue(size){}
 			~OreoEventQueue(){}
 			OreoEvent * pop();
 			void put(OreoEvent *event);
 			uint32_t count();
 
 		private:
+			uint64_t _put_count;
 			OreoLock _lock; 
 			std::deque<OreoEvent *> _queue;
 	};

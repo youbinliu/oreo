@@ -68,17 +68,21 @@ int OreoTcpServer::init(){
 	_backlog = 1024;
 	_loop_timeintval = 100;
 	_net_queue_size = 10240;
-	_net_work_threads_size = 1;
+	_net_work_threads_size = 10;
 	_server_status = SERVER_INIT;
 	_max_event_size = 10240;
 	
+	signal(SIGPIPE, SIG_IGN);
+
+	_lock = new OreoLock();
+	_cond = new OreoCondLock(_lock);
+
 	_net_queue = new OreoEventQueue(_net_queue_size);
 
 	createSocket(_port,_backlog,_server_fd);
 
 	_server_event = new OreoEvent(_server_fd);
 	_server_event->careRead();
-	//_server_event->registerReadCallback(&connectionCallback);
 
 	_server_epoll = new OreoEpoll(_max_event_size);
 	_server_epoll->init();
@@ -93,6 +97,7 @@ int OreoTcpServer::init(){
 void * netWorkLoop(void *serv){
 	OreoTcpServer *_serv = (OreoTcpServer *) serv;
 	OreoEventQueue *_queue = _serv->getNetQueue();
+	pid_t tid = static_cast<pid_t>(::syscall(SYS_gettid));
 
 	while(_serv->getServerStatus() == SERVER_RUNNING){
 
@@ -100,21 +105,31 @@ void * netWorkLoop(void *serv){
 			OreoEvent *oe = _queue->pop();
 			if(oe != NULL){
 				int conn_sock_fd = oe->getEventFd();
-				char buffer[1024];
-				memset(buffer, 0, sizeof(buffer));
+				char req[1024];
+				char res[1024];
+				memset(req, 0, sizeof(req));
+				memset(res, 0, sizeof(res));
 				int recv_size = 0;
-				if ((recv_size = recv(conn_sock_fd, buffer, sizeof(buffer), 0)) < 0){
-					perror("recv failed\n");
+				if ((recv_size = recv(conn_sock_fd, req, sizeof(req), 0)) < 0){
+					perror("recv failed");
 					continue;
 				}
 
-				if (send(conn_sock_fd, buffer,recv_size, 0) == -1 && (errno != EAGAIN) && (errno != EWOULDBLOCK) ){
+				
+
+				callback cbfunc = oe->getCallback();
+				cbfunc(req, res);
+				//printf("tid:%d,recv %d, req:%s, res:%s\n", tid, conn_sock_fd, req, res);
+				if (send(conn_sock_fd, res, strlen(res), 0) == -1 && (errno != EAGAIN) && (errno != EWOULDBLOCK) ){
 					perror("send failed");
 					continue;
 				}
+
+				delete oe;
+				close(conn_sock_fd);
 			}
 		}else{
-			usleep(100000);
+			_serv->getCondLock()->wait();
 		}
 	}
 	return NULL;
@@ -123,21 +138,33 @@ void * netWorkLoop(void *serv){
 void * mainLoop(void *serv){
 	OreoTcpServer *_serv = (OreoTcpServer *) serv;
 	OreoEventQueue *_queue = _serv->getNetQueue();
+	pid_t tid = static_cast<pid_t>(::syscall(SYS_gettid));
+	std::vector<OreoEvent *> events;
 
 	while(_serv->getServerStatus() == SERVER_RUNNING){
-		std::vector<OreoEvent *> events;
+
 		_serv->getPoll()->loop(_serv->_loop_timeintval, events);
+
 		if(!events.empty()){
 
 			for(size_t i = 0; i < events.size(); ++i){
+
 				OreoEvent * oe = events[i];
+
 				if(oe->getEventType() == NET_EVENT){
+					printf("put one event\n");
+					oe->registerReadCallback(_serv->_cb);
 					_queue->put(oe);
+					
+					_serv->getCondLock()->notify();
+
 				}
 			}
+
 			events.clear();
 		}
 	}	
+
 	return NULL;
 }
 

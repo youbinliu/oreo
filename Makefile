@@ -6,12 +6,10 @@ CXX=g++
 CXXFLAGS=-g \
   -pipe \
   -W \
-  -Wall \
   -Werror
 CFLAGS=-g \
   -pipe \
   -W \
-  -Wall \
   -Werror
 CPPFLAGS=-D_GNU_SOURCE \
   -D__STDC_LIMIT_MACROS \
@@ -32,7 +30,7 @@ CCP_FLAGS=
 
 
 #COMAKE UUID
-COMAKE_MD5=a35b34b03968fbcd722792d526cf6b78  COMAKE
+COMAKE_MD5=53ce21e11cd10cd8a28fa3441b2aa3bd  COMAKE
 
 
 .PHONY:all
