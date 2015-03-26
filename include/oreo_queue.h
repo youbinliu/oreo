@@ -15,9 +15,23 @@
 #ifndef __OREO_QUEUE_H_
 #define __OREO_QUEUE_H_
 
+#include <deque>
+#include "oreo_lock.h"
+#include "oreo_event.h"
+
 namespace oreo{
-	class OreoBlockQueue{
-		
+
+	class OreoEventQueue{
+		public:
+			OreoEventQueue(uint32_t size):_queue(size){}
+			~OreoEventQueue(){}
+			OreoEvent * pop();
+			void put(OreoEvent *event);
+			uint32_t count();
+
+		private:
+			OreoLock _lock; 
+			std::deque<OreoEvent *> _queue;
 	};
 }
 

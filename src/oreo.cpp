@@ -13,3 +13,13 @@
  */
 
 
+#include "oreo_tcp_server.h"
+
+int main(int , char **){
+
+	oreo::OreoTcpServer *server = new oreo::OreoTcpServer(8765);
+	server->init();
+	server->run();
+	server->join();
+	return 0;
+}

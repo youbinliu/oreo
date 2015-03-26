@@ -34,8 +34,8 @@ LDFLAGS('-lpthread -lcrypto -lrt -lssl -lldap -lidn')
 #依赖模块
 #CONFIGS('lib2/ullib@ullib_3-1-75-0_PD_BL')
 
-user_sources=GLOB('*.cpp')
-user_headers=GLOB('*.h')
+user_sources=GLOB('./src/*.cpp')
+user_headers=GLOB('./include/*.h')
 
 #可执行文件
 Application('oreo',Sources(user_sources))

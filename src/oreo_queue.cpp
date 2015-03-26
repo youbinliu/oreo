@@ -12,4 +12,25 @@
  
  */
 
+#include "oreo_queue.h"
 
+namespace oreo{
+
+void OreoEventQueue::put(OreoEvent * event){
+	OreoMutexLock mutexlock(&_lock);
+	_queue.push_back(event);
+}
+
+OreoEvent* OreoEventQueue::pop(){
+	OreoMutexLock mutexlock(&_lock);
+	OreoEvent *event = _queue.front();
+	_queue.pop_front();
+	return event;
+}
+
+uint32_t OreoEventQueue::count(){
+	OreoMutexLock mutexlock(&_lock);
+	return _queue.size();
+}
+
+}
